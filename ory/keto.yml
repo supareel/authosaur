@@ -1,0 +1,40 @@
+dsn: postgres://postgres:password@db/keto?sslmode=disable
+namespaces:
+  - name: my_app
+    id: 1
+serve:
+  read:
+    port: 4466
+    host: 0.0.0.0
+  write:
+    port: 4467
+    host: 0.0.0.0
+  metrics:
+    port: 4468
+    host: 0.0.0.0
+  opl:
+    port: 4469
+    host: 0.0.0.0
+
+log:
+  level: debug
+  format: json
+
+profiling: cpu
+
+tracing:
+  provider: jaeger
+  service_name: ory-keto
+  deployment_environment: development
+  providers:
+    jaeger:
+      local_agent_address: 127.0.0.1:6831
+      sampling:
+        server_url: http://localhost:5778/sampling
+        trace_id_ratio: 1.0
+
+clients:
+  http:
+    disallow_private_ip_ranges: false
+
+version: v0.12.0

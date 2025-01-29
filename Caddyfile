@@ -1,0 +1,39 @@
+{
+  email {env.CADDY_EMAIL}
+}
+
+// auth.supareel.com {
+//   reverse_proxy keycloak:8080 {
+//     transport http {
+//       tls_insecure_skip_verify
+//     }
+//   }
+
+//   tls {
+//     dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+//   }
+// }
+
+// postgres_primary.supareel.com {
+//   reverse_proxy postgres_primary:5432 {
+//     transport http {
+//       tls_insecure_skip_verify
+//     }
+//   }
+
+//   tls {
+//     dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+//   }
+// }
+
+// postgres_read.supareel.com {
+//   reverse_proxy postgres_read:5433 {
+//     transport http {
+//       tls_insecure_skip_verify
+//     }
+//   }
+
+//   tls {
+//     dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+//   }
+// }

@@ -1,0 +1,119 @@
+services:
+  kratos:
+    image: oryd/kratos:latest
+    container_name: kratos
+    ports:
+      - "4433:4433" # Admin API
+      - "4434:4434" # Public API
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/kratos?sslmode=disable
+      - DSN=postgres://postgres:password@db/kratos?sslmode=disable
+      - SERVE_PUBLIC_PORT=4434
+      - SERVE_ADMIN_PORT=4433
+      - SELFSERVICE_PORT=4433
+      - KRATOS_URL=http://kratos:4433
+    depends_on:
+      - db
+    networks:
+      - ory-network
+    volumes:
+      - ./ory:/home/ory:ro
+      - ./ory/schemas:/home/ory/schemas:ro # Mount the schemas directory
+    command:
+      serve --dev -c /home/ory/kratos.yml
+
+  # kratos-migration:
+  #   image: oryd/kratos:v1.3.1
+  #   depends_on:
+  #     - db
+  #   command: migrate sql postgres://postgres:password@db:5432/kratos?sslmode=disable -c /home/ory/kratos.yml -y
+  #   volumes:
+  #     - ./ory:/home/ory:ro
+  #   networks:
+  #     - ory-network
+
+  hydra:
+    image: oryd/hydra:latest
+    container_name: hydra
+    ports:
+      - "4444:4444" # Public API
+      - "4445:4445" # Admin API
+    environment:
+      - DSN=postgres://postgres:password@db/hydra?sslmode=disable
+      - SERVE_PUBLIC_PORT=4444
+      - SERVE_ADMIN_PORT=4445
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ory-network
+    command:
+      serve all --dev -c /home/ory/hydra.yml
+    volumes:
+      - ./ory:/home/ory:ro
+
+  # hydra-migration:
+  #   image: oryd/hydra:latest
+  #   depends_on:
+  #     - db
+  #   command: migrate sql postgres://postgres:password@db:5432/hydra?sslmode=disable -c /home/ory/hydra.yml -y
+  #   volumes:
+  #     - ./ory:/home/ory:ro
+  #   networks:
+  #     - ory-network
+
+  keto:
+    image: oryd/keto:latest
+    ports:
+      - "4466:4466" # Public API
+    environment:
+      - LOG_LEVEL=debug
+    depends_on:
+      db:
+        condition: service_healthy
+      # - keto-migration
+    networks:
+      - ory-network
+    volumes:
+      - ./ory:/home/ory:ro
+    command:
+      serve -c /home/ory/keto.yml
+
+  # keto-migration:
+  #   image: oryd/keto:latest
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   command: migrate up -c /home/ory/keto.yml -y
+  #   volumes:
+  #     - ./ory:/home/ory:ro
+  #   networks:
+  #     - ory-network
+
+  db:
+    image: postgres:latest
+    container_name: db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ory-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+
+
+networks:
+  ory-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+
+
+
